@@ -586,3 +586,5 @@ MIT License. See [LICENSE](LICENSE) for details.
 Source development requires Node.js 22.12+ (22 LTS), 24+, or 26+. SQLite uses the N-API release to support current Node 24 cleanup hooks; the Windows installer checks the addon using its bundled runtime.
 
 Use npm 11.16.0 or newer for the committed install-script policy. The embedded SQLite prebuild needs no compilation; its implicit node-gyp script is explicitly denied, while the required esbuild, ONNX runtime, sharp and protobuf setup scripts remain approved. Tests and packaged builds still load SQLite and fail on an incompatible binary.
+
+The Docker image uses Node.js 24.21.0 and npm 11.16.0, matching native dependencies and install-script policy. Container CI loads actual SQLite and Transformers without network access. Scheduler migration tests execute only a synthetic local callback. Real model inference still requires the separately configured model cache; these checks download no weights.

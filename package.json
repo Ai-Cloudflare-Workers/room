@@ -71,10 +71,10 @@
     "social:cron:show": "crontab -l | grep 'quoroom-social-rotate' || true"
   },
   "dependencies": {
-    "@huggingface/transformers": "^3.4.1",
+    "@huggingface/transformers": "4.3.1",
     "@modelcontextprotocol/sdk": "^1.12.0",
     "better-sqlite3": "13.0.3",
-    "node-cron": "^3.0.3",
+    "node-cron": "4.6.0",
     "playwright": "^1.49.0",
     "sqlite-vec": "^0.1.7-alpha.2",
     "viem": "^2.46.2",
@@ -87,7 +87,6 @@
     "@tailwindcss/vite": "^4.2.0",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^24.19.2",
-    "@types/node-cron": "^3.0.11",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@types/ws": "^8.5.10",

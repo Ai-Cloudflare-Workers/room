@@ -1,6 +1,6 @@
 import { join } from 'node:path'
 import { homedir } from 'node:os'
-import cron from 'node-cron'
+import cron, { type ScheduledTask } from 'node-cron'
 import type Database from 'better-sqlite3'
 import * as queries from '../shared/db-queries'
 import { APP_NAME } from '../shared/constants'
@@ -24,7 +24,7 @@ const QUEEN_INBOX_POLL_MS = getBoundedIntervalMs('QUOROOM_QUEEN_INBOX_POLL_MS', 
 const CLERK_ALERT_RELAY_MS = getBoundedIntervalMs('QUOROOM_CLERK_ALERT_RELAY_MS', 15_000, 3_000, 120_000)
 const CLERK_CONTACT_ONBOARDING_START_KEY = 'clerk_contact_onboarding_started_at'
 
-const cronJobs = new Map<number, { expression: string; job: cron.ScheduledTask }>()
+const cronJobs = new Map<number, { expression: string; job: ScheduledTask }>()
 const pendingTaskStarts = new Set<number>()
 
 let schedulerTimer: ReturnType<typeof setInterval> | null = null
