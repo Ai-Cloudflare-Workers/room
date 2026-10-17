@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } 
 import { createTestServer, request, type TestContext } from '../helpers/test-server'
 import * as queries from '../../../shared/db-queries'
 import * as providerCli from '../../provider-cli'
+import * as localModel from '../../../shared/local-model'
 
 let ctx: TestContext
 
@@ -20,6 +21,10 @@ beforeEach(() => {
   // Prevent auto-configure from detecting local CLI installs by default
   vi.spyOn(providerCli, 'probeProviderInstalled').mockReturnValue({ installed: false })
   vi.spyOn(providerCli, 'probeProviderConnected').mockReturnValue(null)
+  vi.spyOn(localModel, 'probeOllamaRuntime').mockReturnValue({
+    installed: false, version: null, daemonReachable: false, modelAvailable: false,
+    models: [], ready: false, error: 'Synthetic unavailable runtime',
+  })
 })
 
 afterEach(() => {
@@ -98,7 +103,11 @@ describe('Clerk routes', () => {
   })
 
   describe('GET /api/clerk/status', () => {
-    it('auto-configures local model by default', async () => {
+    it('auto-configures the local model when its runtime and model are ready', async () => {
+      vi.mocked(localModel.probeOllamaRuntime).mockReturnValue({
+        installed: true, version: 'synthetic', daemonReachable: true, modelAvailable: true,
+        models: ['qwen3-coder:30b'], ready: true, error: null,
+      })
       const res = await request(ctx, 'GET', '/api/clerk/status')
       expect(res.status).toBe(200)
       const body = res.body as any
@@ -111,6 +120,14 @@ describe('Clerk routes', () => {
       expect(body.model).toBe('ollama:qwen3-coder:30b')
       expect(body.autoConfigured).toBe(true)
       expect(body.apiAuth).toBeDefined()
+    })
+
+    it('does not claim configuration or persist a model when every provider is unavailable', async () => {
+      const res = await request(ctx, 'GET', '/api/clerk/status')
+      expect(res.status).toBe(200)
+      expect((res.body as any).configured).toBe(false)
+      expect((res.body as any).autoConfigured).toBe(false)
+      expect(queries.getSetting(ctx.db, 'clerk_model')).toBeNull()
     })
 
     it('reflects commentaryEnabled=false after setting it', async () => {
@@ -201,6 +218,8 @@ describe('Clerk routes', () => {
 
       // Second call — model is now in DB, no probing needed
       const probeSpy = vi.spyOn(providerCli, 'probeProviderInstalled').mockReturnValue({ installed: false })
+      // Measure only the second request; re-spying preserves the first call's history.
+      probeSpy.mockClear()
       const second = await request(ctx, 'GET', '/api/clerk/status')
       expect((second.body as any).model).toBe('claude')
       expect((second.body as any).autoConfigured).toBe(false)

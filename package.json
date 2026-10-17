@@ -1,7 +1,7 @@
 {
   "name": "room",
   "version": "0.1.43",
-  "description": "Open-source local AI agent framework — Queen, Workers, Quorum. Experimental research tool.",
+  "description": "Open-source local AI agent framework \u2014 Queen, Workers, Quorum. Experimental research tool.",
   "main": "./out/mcp/server.js",
   "bin": {
     "quoroom": "./out/mcp/cli.js"
@@ -73,7 +73,7 @@
   "dependencies": {
     "@huggingface/transformers": "^3.4.1",
     "@modelcontextprotocol/sdk": "^1.12.0",
-    "better-sqlite3": "^11.10.0",
+    "better-sqlite3": "13.0.3",
     "node-cron": "^3.0.3",
     "playwright": "^1.49.0",
     "sqlite-vec": "^0.1.7-alpha.2",
@@ -86,18 +86,30 @@
     "@playwright/test": "^1.58.2",
     "@tailwindcss/vite": "^4.2.0",
     "@types/better-sqlite3": "^7.6.13",
-    "@types/node": "^20.11.0",
+    "@types/node": "^24.19.2",
     "@types/node-cron": "^3.0.11",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@types/ws": "^8.5.10",
     "@vitejs/plugin-react": "^5.1.4",
-    "esbuild": "^0.24.0",
+    "esbuild": "^0.28.2",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "tailwindcss": "^4.2.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.1",
-    "vitest": "^1.6.1"
+    "vitest": "^5.0.5"
+  },
+  "engines": {
+    "node": "^22.12.0 || ^24.0.0 || >=26.0.0",
+    "npm": ">=11.16.0"
+  },
+  "packageManager": "npm@11.16.0",
+  "allowScripts": {
+    "better-sqlite3": false,
+    "esbuild": true,
+    "onnxruntime-node": true,
+    "sharp": true,
+    "protobufjs": true
   }
 }

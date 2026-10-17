@@ -1,7 +1,7 @@
-const { execSync } = require('child_process')
+const { execSync, execFileSync } = require('child_process')
 const { writeFileSync, mkdirSync, existsSync, rmSync, readFileSync } = require('fs')
 const path = require('path')
-const { version } = require('../package.json')
+const { version, dependencies, allowScripts } = require('../package.json')
 
 const OUT_DIR = 'out/mcp'
 const NODE_MODULES_DIR = path.join(OUT_DIR, 'node_modules')
@@ -27,7 +27,7 @@ const REQUIRED_PACKAGES = [
 const COMMON = {
   bundle: true,
   platform: 'node',
-  target: 'node18',
+  target: 'node22',
   external: EXTERNALS,
   define: { __APP_VERSION__: JSON.stringify(version) },
   logLevel: 'warning',
@@ -35,24 +35,6 @@ const COMMON = {
 
 function packageInstalled(name) {
   return existsSync(path.join(NODE_MODULES_DIR, ...name.split('/'), 'package.json'))
-}
-
-function readBinaryMagic(filePath) {
-  if (!existsSync(filePath)) return null
-  const bytes = readFileSync(filePath)
-  if (bytes.length < 4) return null
-  return [bytes[0], bytes[1], bytes[2], bytes[3]]
-}
-
-function isMagicForCurrentPlatform(magic) {
-  if (!magic) return false
-  if (process.platform === 'win32') return magic[0] === 0x4d && magic[1] === 0x5a // PE (MZ)
-  if (process.platform === 'linux') return magic[0] === 0x7f && magic[1] === 0x45 && magic[2] === 0x4c && magic[3] === 0x46 // ELF
-  if (process.platform === 'darwin') {
-    const sig = magic.map((b) => b.toString(16).padStart(2, '0')).join('')
-    return sig === 'cffaedfe' || sig === 'cefaedfe' || sig === 'cafebabe' || sig === 'feedface' || sig === 'feedfacf'
-  }
-  return true
 }
 
 function getInstallReasons() {
@@ -80,12 +62,22 @@ function getInstallReasons() {
     }
   }
 
-  const betterSqliteBinary = path.join(NODE_MODULES_DIR, 'better-sqlite3', 'build', 'Release', 'better_sqlite3.node')
-  const magic = readBinaryMagic(betterSqliteBinary)
-  if (!magic) {
-    reasons.push('missing better-sqlite3 native binary')
-  } else if (!isMagicForCurrentPlatform(magic)) {
-    reasons.push('better-sqlite3 native binary does not match current platform')
+  if (packageInstalled('better-sqlite3')) {
+    try {
+      const moduleDir = path.resolve(NODE_MODULES_DIR, 'better-sqlite3')
+      const installed = JSON.parse(readFileSync(path.join(moduleDir, 'package.json'), 'utf8'))
+      if (installed.version !== dependencies['better-sqlite3']) {
+        reasons.push(`better-sqlite3 ${installed.version} differs from required ${dependencies['better-sqlite3']}`)
+      } else {
+        // N-API releases embed platform prebuilds instead of build/Release binaries.
+        // Probe in a child so an incompatible native addon cannot abort the builder.
+        execFileSync(process.execPath, ['-e', `require(${JSON.stringify(moduleDir)})(':memory:').close()`], {
+          timeout: 10000, stdio: 'pipe'
+        })
+      }
+    } catch (error) {
+      reasons.push(`better-sqlite3 runtime probe failed: ${error.message}`)
+    }
   }
 
   return reasons
@@ -118,8 +110,10 @@ async function main() {
     name: 'quoroom-mcp',
     version,
     private: true,
+    allowScripts,
+    engines: { node: '>=22', npm: '>=11.16.0' },
     dependencies: {
-      'better-sqlite3': '11.10.0',
+      'better-sqlite3': dependencies['better-sqlite3'],
       'sqlite-vec': '*',
       '@huggingface/transformers': '*',
       'playwright': '*',
@@ -144,7 +138,7 @@ async function main() {
       )
       rmSync(NODE_MODULES_DIR, { recursive: true, force: true })
       const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm'
-      execSync(`${npmCmd} install --omit=dev`, { cwd: OUT_DIR, stdio: 'inherit' })
+      execSync(`${npmCmd} install --omit=dev`, { cwd: OUT_DIR, stdio: 'inherit', timeout: 300000 })
       writeInstallMeta()
     }
   }
