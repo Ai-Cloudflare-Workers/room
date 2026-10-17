@@ -218,6 +218,8 @@ describe('Clerk routes', () => {
 
       // Second call — model is now in DB, no probing needed
       const probeSpy = vi.spyOn(providerCli, 'probeProviderInstalled').mockReturnValue({ installed: false })
+      // Measure only the second request; re-spying preserves the first call's history.
+      probeSpy.mockClear()
       const second = await request(ctx, 'GET', '/api/clerk/status')
       expect((second.body as any).model).toBe('claude')
       expect((second.body as any).autoConfigured).toBe(false)

@@ -101,10 +101,7 @@ try {
   Pop-Location
 }
 
-$betterSqlite = Join-Path $nodeModules "better-sqlite3/build/Release/better_sqlite3.node"
-Assert-WindowsPe $betterSqlite "better-sqlite3 native module"
-
-$nodeVersion = "20.18.1"
+$nodeVersion = "24.21.0"
 $cacheDir = Join-Path $repoRoot ".cache"
 $nodeZip = Join-Path $cacheDir "node-v$nodeVersion-win-x64.zip"
 $nodeDir = Join-Path $cacheDir "node-v$nodeVersion-win-x64"
@@ -113,7 +110,7 @@ New-Item -ItemType Directory -Force -Path $cacheDir | Out-Null
 
 if (-not (Test-Path $nodeExe)) {
   if (-not (Test-Path $nodeZip)) {
-    Invoke-WebRequest -Uri "https://nodejs.org/dist/v$nodeVersion/node-v$nodeVersion-win-x64.zip" -OutFile $nodeZip
+    Invoke-WebRequest -Uri "https://nodejs.org/dist/v$nodeVersion/node-v$nodeVersion-win-x64.zip" -OutFile $nodeZip -TimeoutSec 60
   }
   if (Test-Path $nodeDir) {
     Remove-Item -Recurse -Force $nodeDir
@@ -122,6 +119,16 @@ if (-not (Test-Path $nodeExe)) {
 }
 
 Assert-WindowsPe $nodeExe "Bundled Node runtime"
+
+# Validate the embedded N-API SQLite binary with the runtime actually shipped.
+Push-Location $outMcp
+try {
+  & $nodeExe -e "require('better-sqlite3')(':memory:').close()"
+  if ($LASTEXITCODE -ne 0) { throw "Bundled Node runtime cannot load better-sqlite3." }
+} finally {
+  Pop-Location
+}
+
 
 $stagingRoot = Join-Path $repoRoot "staging"
 $stagingApp = Join-Path $stagingRoot "quoroom"

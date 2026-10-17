@@ -190,7 +190,7 @@ brew install quoroom-ai/quoroom/quoroom
 
 ### Download
 
-Download from [GitHub Releases](https://github.com/quoroom-ai/room/releases). Installers add `quoroom` to your PATH automatically. No dependencies needed. The installer bundles only Node.js v20 — no third-party software, toolbars, or extensions are included.
+Download from [GitHub Releases](https://github.com/quoroom-ai/room/releases). Installers add `quoroom` to your PATH automatically. No dependencies needed. The installer bundles only Node.js v24.21.0 — no third-party software, toolbars, or extensions are included.
 
 Installer launchers:
 - macOS `.pkg`: open `/Applications/Quoroom Server.app`
@@ -582,3 +582,5 @@ Workers inherit the queen's model by default, or can use a separate model (API o
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
+
+Source development requires Node.js 22.12+ (22 LTS), 24+, or 26+. SQLite uses the N-API release to support current Node 24 cleanup hooks; the Windows installer checks the addon using its bundled runtime.
