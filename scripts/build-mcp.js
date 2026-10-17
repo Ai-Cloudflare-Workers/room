@@ -1,7 +1,7 @@
 const { execSync, execFileSync } = require('child_process')
 const { writeFileSync, mkdirSync, existsSync, rmSync, readFileSync } = require('fs')
 const path = require('path')
-const { version, dependencies } = require('../package.json')
+const { version, dependencies, allowScripts } = require('../package.json')
 
 const OUT_DIR = 'out/mcp'
 const NODE_MODULES_DIR = path.join(OUT_DIR, 'node_modules')
@@ -110,6 +110,8 @@ async function main() {
     name: 'quoroom-mcp',
     version,
     private: true,
+    allowScripts,
+    engines: { node: '>=22', npm: '>=11.16.0' },
     dependencies: {
       'better-sqlite3': dependencies['better-sqlite3'],
       'sqlite-vec': '*',
