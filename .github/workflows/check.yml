@@ -22,3 +22,18 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+
+  container:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build --tag quoroom-runtime-check .
+      - name: Load actual container native dependencies without network or provider accounts
+        run: >-
+          docker run --rm --network none --entrypoint node quoroom-runtime-check
+          -e "const db=require('/app/out/mcp/node_modules/better-sqlite3')(':memory:');
+          if(db.prepare('select 1 as value').get().value!==1)process.exit(1);db.close();
+          import('/app/out/mcp/node_modules/@huggingface/transformers/src/transformers.js')
+          .then(m=>{if(typeof m.pipeline!=='function')process.exit(1)})
+          .catch(e=>{console.error(e);process.exit(1)})"

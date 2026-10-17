@@ -111,13 +111,13 @@ async function main() {
     version,
     private: true,
     allowScripts,
-    engines: { node: '>=22', npm: '>=11.16.0' },
+    engines: { node: '^22.12.0 || ^24.0.0 || >=26.0.0', npm: '>=11.16.0' },
     dependencies: {
       'better-sqlite3': dependencies['better-sqlite3'],
-      'sqlite-vec': '*',
-      '@huggingface/transformers': '*',
-      'playwright': '*',
-      'ws': '*'
+      'sqlite-vec': dependencies['sqlite-vec'],
+      '@huggingface/transformers': dependencies['@huggingface/transformers'],
+      'playwright': dependencies['playwright'],
+      'ws': dependencies['ws']
     }
   }, null, 2))
 

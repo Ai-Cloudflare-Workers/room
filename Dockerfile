@@ -1,4 +1,6 @@
-FROM node:20-slim AS build
+FROM node:24.21.0-slim AS build
+
+RUN npm install --global npm@11.16.0
 
 WORKDIR /app
 COPY package.json package-lock.json ./
@@ -6,8 +8,9 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-FROM node:20-slim
+FROM node:24.21.0-slim
 
+RUN npm install --global npm@11.16.0
 RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ && rm -rf /var/lib/apt/lists/*
 RUN npm install -g @openai/codex @anthropic-ai/claude-code
 
